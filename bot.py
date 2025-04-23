@@ -16,6 +16,11 @@ logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 
+# Health check endpoint
+@app.route("/")
+def ping():
+    return "Bot is live ✅", 200
+
 telegram_app = ApplicationBuilder().token("7339977646:AAHez8tXVk7fOyve8qRYlHYX93Ud9eQNMhc").build()
 
 # /start
