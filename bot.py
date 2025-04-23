@@ -18,6 +18,23 @@ app = Flask(__name__)
 
 telegram_app = ApplicationBuilder().token("7339977646:AAHez8tXVk7fOyve8qRYlHYX93Ud9eQNMhc").build()
 
+# /start
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "👋 Привет! Я бот для отслеживания контейнеров по железной дороге.\n\nНапиши /track <номер контейнера>, например:\n/track TCNU1234567"
+    )
+
+# /help
+async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "❓ Помощь:\n\n• /track <номер> — отслеживание контейнера\n• /refresh — проверить актуальность данных\n• /help — помощь\n\nКонтейнерные карты обновляются ежедневно."
+    )
+
+# /refresh (фиктивная команда)
+async def refresh(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text("✅ Данные обновляются в реальном времени из Google Sheets. Ничего обновлять не нужно!")
+
+# /track
 async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
         await update.message.reply_text("Пожалуйста, укажи номер контейнера: /track TCNU1234567")
@@ -65,6 +82,9 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logging.exception("Ошибка при обработке контейнера")
         await update.message.reply_text("Произошла ошибка при обработке контейнера. Проверь данные.")
 
+telegram_app.add_handler(CommandHandler("start", start))
+telegram_app.add_handler(CommandHandler("help", help_command))
+telegram_app.add_handler(CommandHandler("refresh", refresh))
 telegram_app.add_handler(CommandHandler("track", track))
 
 @app.route(f"/webhook/{telegram_app.bot.token}", methods=["POST"])
@@ -73,15 +93,6 @@ def webhook():
     return "ok"
 
 if __name__ == '__main__':
-    from flask import Flask
-    import sys
-    import subprocess
-    try:
-        import flask
-    except ImportError:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "flask"])
-        import flask
-
     telegram_app.run_webhook(
         listen="0.0.0.0",
         port=PORT,
