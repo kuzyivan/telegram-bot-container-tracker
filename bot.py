@@ -2,7 +2,7 @@ import logging
 import os
 import time
 from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 import pandas as pd
 from upload_map import upload_map_to_github
 import folium
@@ -19,26 +19,22 @@ telegram_app = ApplicationBuilder().token("7339977646:AAHez8tXVk7fOyve8qRYlHYX93
 # /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "👋 Привет! Я бот для отслеживания контейнеров по железной дороге.\n\nНапиши /track <номер контейнера>, например:\n/track TCNU1234567"
+        "👋 Привет! Я бот для отслеживания контейнеров по железной дороге.\n\nПросто пришли мне номер контейнера, например: TCNU1234567"
     )
 
 # /help
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "❓ Помощь:\n\n• /track <номер> — отслеживание контейнера\n• /refresh — проверить актуальность данных\n• /help — помощь\n\nКонтейнерные карты обновляются ежедневно."
+        "❓ Помощь:\n\nПросто отправь номер контейнера (например: TCNU1234567) — и я покажу тебе карту и информацию о последней операции."
     )
 
 # /refresh (фиктивная команда)
 async def refresh(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("✅ Данные обновляются в реальном времени из Google Sheets. Ничего обновлять не нужно!")
 
-# /track
+# Обработка номера контейнера
 async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    if not context.args:
-        await update.message.reply_text("Пожалуйста, укажи номер контейнера: /track TCNU1234567")
-        return
-
-    container_number = context.args[0].upper()
+    container_number = update.message.text.strip().upper()
 
     try:
         df = pd.read_csv(GOOGLE_SHEET_CSV)
@@ -83,7 +79,7 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
 telegram_app.add_handler(CommandHandler("start", start))
 telegram_app.add_handler(CommandHandler("help", help_command))
 telegram_app.add_handler(CommandHandler("refresh", refresh))
-telegram_app.add_handler(CommandHandler("track", track))
+telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, track))
 
 if __name__ == '__main__':
     telegram_app.run_webhook(
