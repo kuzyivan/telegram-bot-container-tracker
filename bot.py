@@ -1,5 +1,6 @@
 import logging
 import os
+import time
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import pandas as pd
@@ -105,3 +106,5 @@ if __name__ == '__main__':
         url_path=telegram_app.bot.token,
         webhook_url=f"{WEBHOOK_URL}/webhook/{telegram_app.bot.token}"
     )
+    while True:
+        time.sleep(10)
