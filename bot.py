@@ -20,7 +20,7 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         df = pd.read_csv(GOOGLE_SHEET_CSV)
-        df.columns = [str(col).strip() for col in df.columns]
+        df.columns = [str(col).strip().replace('\ufeff', '') for col in df.columns]  # чистка скрытых символов
 
         info = df[df["Контейнер"] == container_number].iloc[0]
         station_name = str(info["Станция операция"]).split("(")[0].strip().upper()
@@ -57,6 +57,7 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logging.exception("Ошибка при обработке контейнера")
         await update.message.reply_text("Произошла ошибка при обработке контейнера. Проверь данные.")
+
 
 if __name__ == '__main__':
     from telegram.ext import Application
