@@ -62,7 +62,7 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
 Номер накладной: {info['Номер накладной']}
 Данные актуальны на: текущий момент"""
 
-        filename = f"map_{container_number}.html"
+        filename = "map.html"
         m = folium.Map(location=[lat, lon], zoom_start=10)
         folium.Marker(location=[lat, lon], popup=message, tooltip=container_number).add_to(m)
         m.save(filename)
