@@ -6,6 +6,8 @@ import pandas as pd
 from upload_map import upload_map_to_github
 import folium
 from flask import Flask, request
+import asyncio
+import threading
 
 GOOGLE_SHEET_CSV = "https://docs.google.com/spreadsheets/d/16PZrxpzsfBkF7hGN4OKDx6CRfIqySES4oLL9OoxOV8Q/export?format=csv"
 COORD_FILE = "Stations_coord.xlsx"
@@ -16,7 +18,6 @@ logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 
-# Health check endpoint
 @app.route("/")
 def ping():
     return "Bot is live ✅", 200
@@ -97,10 +98,11 @@ def webhook():
     telegram_app.update_queue.put(Update.de_json(request.get_json(force=True), telegram_app.bot))
     return "ok"
 
+async def run_bot():
+    await telegram_app.initialize()
+    await telegram_app.start()
+    await telegram_app.updater.start_polling()
+
 if __name__ == '__main__':
-    telegram_app.run_webhook(
-        listen="0.0.0.0",
-        port=PORT,
-        url_path=telegram_app.bot.token,
-        webhook_url=f"{WEBHOOK_URL}/webhook/{telegram_app.bot.token}"
-    )
+    threading.Thread(target=lambda: app.run(host="0.0.0.0", port=PORT)).start()
+    asyncio.run(run_bot())
