@@ -93,6 +93,8 @@ telegram_app.add_handler(CommandHandler("track", track))
 
 @app.route(f"/webhook/{telegram_app.bot.token}", methods=["POST"])
 def webhook():
+    print("📩 Webhook triggered!")
+    print(request.get_json())
     telegram_app.update_queue.put(Update.de_json(request.get_json(force=True), telegram_app.bot))
     return "ok"
 
