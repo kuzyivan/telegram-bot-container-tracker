@@ -89,8 +89,8 @@ if __name__ == '__main__':
     telegram_app.run_webhook(
         listen="0.0.0.0",
         port=PORT,
-        url_path=telegram_app.bot.token,
-        webhook_url=f"{WEBHOOK_URL}/webhook/{telegram_app.bot.token}"
+        url_path="webhook",
+        webhook_url=f"{WEBHOOK_URL}/webhook"
     )
     while True:
         time.sleep(10)
