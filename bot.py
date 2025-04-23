@@ -6,7 +6,6 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import pandas as pd
 from upload_map import upload_map_to_github
 import folium
-from flask import Flask, request
 
 GOOGLE_SHEET_CSV = "https://docs.google.com/spreadsheets/d/16PZrxpzsfBkF7hGN4OKDx6CRfIqySES4oLL9OoxOV8Q/export?format=csv"
 COORD_FILE = "Stations_coord.xlsx"
@@ -14,12 +13,6 @@ PORT = int(os.environ.get("PORT", 10000))
 WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
 
 logging.basicConfig(level=logging.INFO)
-
-app = Flask(__name__)
-
-@app.route("/")
-def ping():
-    return "Bot is live ✅", 200
 
 telegram_app = ApplicationBuilder().token("7339977646:AAHez8tXVk7fOyve8qRYlHYX93Ud9eQNMhc").build()
 
@@ -91,13 +84,6 @@ telegram_app.add_handler(CommandHandler("start", start))
 telegram_app.add_handler(CommandHandler("help", help_command))
 telegram_app.add_handler(CommandHandler("refresh", refresh))
 telegram_app.add_handler(CommandHandler("track", track))
-
-@app.route(f"/webhook/{telegram_app.bot.token}", methods=["POST"])
-def webhook():
-    print("📩 Webhook triggered!")
-    print(request.get_json())
-    telegram_app.update_queue.put(Update.de_json(request.get_json(force=True), telegram_app.bot))
-    return "ok"
 
 if __name__ == '__main__':
     telegram_app.run_webhook(
