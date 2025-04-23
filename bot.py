@@ -73,6 +73,15 @@ def webhook():
     return "ok"
 
 if __name__ == '__main__':
+    from flask import Flask
+    import sys
+    import subprocess
+    try:
+        import flask
+    except ImportError:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "flask"])
+        import flask
+
     telegram_app.run_webhook(
         listen="0.0.0.0",
         port=PORT,
