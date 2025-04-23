@@ -1,15 +1,22 @@
 import logging
+import os
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 import pandas as pd
 from upload_map import upload_map_to_github
 import folium
-import os
+from flask import Flask, request
 
 GOOGLE_SHEET_CSV = "https://docs.google.com/spreadsheets/d/16PZrxpzsfBkF7hGN4OKDx6CRfIqySES4oLL9OoxOV8Q/export?format=csv"
 COORD_FILE = "Stations_coord.xlsx"
+PORT = int(os.environ.get("PORT", 10000))
+WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
 
 logging.basicConfig(level=logging.INFO)
+
+app = Flask(__name__)
+
+telegram_app = ApplicationBuilder().token("7339977646:AAHez8tXVk7fOyve8qRYlHYX93Ud9eQNMhc").build()
 
 async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
@@ -20,7 +27,7 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         df = pd.read_csv(GOOGLE_SHEET_CSV)
-        df.columns = [str(col).strip().replace('\ufeff', '') for col in df.columns]  # чистка скрытых символов
+        df.columns = [str(col).strip().replace('\ufeff', '') for col in df.columns]
 
         info = df[df["Контейнер"] == container_number].iloc[0]
         station_name = str(info["Станция операция"]).split("(")[0].strip().upper()
@@ -58,10 +65,17 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
         logging.exception("Ошибка при обработке контейнера")
         await update.message.reply_text("Произошла ошибка при обработке контейнера. Проверь данные.")
 
+telegram_app.add_handler(CommandHandler("track", track))
+
+@app.route(f"/webhook/{telegram_app.bot.token}", methods=["POST"])
+def webhook():
+    telegram_app.update_queue.put(Update.de_json(request.get_json(force=True), telegram_app.bot))
+    return "ok"
 
 if __name__ == '__main__':
-    from telegram.ext import Application
-    TOKEN = "7339977646:AAHez8tXVk7fOyve8qRYlHYX93Ud9eQNMhc"
-    app = ApplicationBuilder().token(TOKEN).build()
-    app.add_handler(CommandHandler("track", track))
-    app.run_polling()
+    telegram_app.run_webhook(
+        listen="0.0.0.0",
+        port=PORT,
+        url_path=telegram_app.bot.token,
+        webhook_url=f"{WEBHOOK_URL}/webhook/{telegram_app.bot.token}"
+    )
