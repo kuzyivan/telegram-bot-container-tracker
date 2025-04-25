@@ -35,8 +35,7 @@ async def refresh(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Обработка одного или нескольких контейнеров
 async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = update.message.text.strip().upper()
-    container_list = re.split(r'[\s,;:.
-]+', message_text)
+    container_list = re.split(r'[\s,;:.]+', message_text)
     container_list = [c for c in container_list if c]
 
     try:
