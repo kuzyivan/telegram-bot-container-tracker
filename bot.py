@@ -86,8 +86,8 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
 telegram_app.add_handler(CommandHandler("start", start))
 telegram_app.add_handler(CommandHandler("help", help_command))
 telegram_app.add_handler(CommandHandler("refresh", refresh))
-telegra
-m_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, track))
+telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, track))
+
 
 if __name__ == '__main__':
     telegram_app.run_webhook(
