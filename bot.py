@@ -35,7 +35,8 @@ async def refresh(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Обработка одного или нескольких контейнеров
 async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = update.message.text.strip().upper()
-    container_list = re.split(r'[\s,;:.\n]+', message_text)
+    container_list = re.split(r'[\s,;:.
+]+', message_text)
     container_list = [c for c in container_list if c]
 
     try:
@@ -60,14 +61,21 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply += f"\n🚆 *Маршрут:* {start} → {end}\n"
             for _, row in group.iterrows():
                 station_name = str(row["Станция операция"]).split("(")[0].strip().upper()
-                eta = row["Дата и время операции"] + timedelta(days=1)
+                date_op = row["Дата и время операции"]
+                if pd.isnull(date_op):
+                    date_op_str = "неизвестна"
+                    eta_str = "неизвестна"
+                else:
+                    date_op_str = date_op.strftime('%Y-%m-%d %H:%M')
+                    eta_str = (date_op + timedelta(days=1)).strftime('%Y-%m-%d')
+
                 reply += (
                     f"\n№ КТК: `{row['Контейнер']}`\n"
                     f"Маршрут: {start} → {end}\n"
                     f"Дислокация: {station_name}\n"
                     f"Операция: {row['Операция']}\n"
-                    f"Дата операции: {row['Дата и время операции'].strftime('%Y-%m-%d %H:%M')}\n"
-                    f"Прогноз прибытия: {eta.strftime('%Y-%m-%d')}\n"
+                    f"Дата операции: {date_op_str}\n"
+                    f"Прогноз прибытия: {eta_str}\n"
                 )
 
         await update.message.reply_text(reply, parse_mode="Markdown")
