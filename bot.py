@@ -34,7 +34,7 @@ async def refresh(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = update.message.text.strip().upper()
     import re
-    container_list = re.split(r'[\\s,;:.\\n]+', message_text)
+    container_list = re.split(r'[\s,;:.\n]+', message_text)
 
 
     try:
