@@ -4,6 +4,7 @@ import time
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 import pandas as pd
+from datetime import timedelta
 
 GOOGLE_SHEET_CSV = "https://docs.google.com/spreadsheets/d/16PZrxpzsfBkF7hGN4OKDx6CRfIqySES4oLL9OoxOV8Q/export?format=csv"
 COORD_FILE = "Stations_coord.xlsx"
@@ -36,7 +37,6 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
     import re
     container_list = re.split(r'[\s,;:.\n]+', message_text)
 
-
     try:
         df = pd.read_csv(GOOGLE_SHEET_CSV)
         df.columns = [str(col).strip().replace('\ufeff', '') for col in df.columns]
@@ -59,8 +59,14 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply += f"\n🚆 *Маршрут:* {start} → {end}\n"
             for _, row in group.iterrows():
                 station_name = str(row["Станция операция"]).split("(")[0].strip().upper()
+                eta = row["Дата и время операции"] + timedelta(days=1)
                 reply += (
-                    f"— `{row['Контейнер']}` | 📍 {station_name} | ⚙️ {row['Операция']} | 📅 {row['Дата и время операции']}\n"
+                    f"\n№ КТК: `{row['Контейнер']}`\n"
+                    f"Маршрут: {start} → {end}\n"
+                    f"Дислокация: {station_name}\n"
+                    f"Операция: {row['Операция']}\n"
+                    f"Дата операции: {row['Дата и время операции'].strftime('%Y-%m-%d %H:%M')}\n"
+                    f"Прогноз прибытия: {eta.strftime('%Y-%m-%d')}\n"
                 )
 
         await update.message.reply_text(reply, parse_mode="Markdown")
