@@ -41,7 +41,12 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         df = pd.read_csv(GOOGLE_SHEET_CSV)
         df.columns = [str(col).strip().replace('\ufeff', '') for col in df.columns]
-        df["Дата и время операции"] = pd.to_datetime(df["Дата и время операции"], format="%d.%m.%Y %H:%M:%S", errors='coerce')
+
+        # Поддержка названий с пробелами и переносами
+        df.columns = [col.replace("\n", " ").replace("  ", " ") for col in df.columns]
+
+        if "Дата и время операции" in df.columns:
+            df["Дата и время операции"] = pd.to_datetime(df["Дата и время операции"], format="%d.%m.%Y %H:%M:%S", errors='coerce')
 
         result_df = (
             df[df["Номер контейнера"].isin(container_list)]
@@ -57,10 +62,9 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply = "📦 Отчёт по контейнерам:\n"
 
         for (start, end), group in grouped:
-            reply += f"\n🚆 *Маршрут:* {start} → {end}\n"
             for _, row in group.iterrows():
-                station_name = str(row["Станция операция"]).split("(")[0].strip().upper()
-                date_op = row["Дата и время операции"]
+                station_name = str(row.get("Станция операция", "")).split("(")[0].strip().upper()
+                date_op = row.get("Дата и время операции")
                 eta_str = "неизвестна"
                 arrival_flag = ""
 
@@ -77,7 +81,7 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 else:
                     date_op_str = date_op.strftime('%Y-%m-%d %H:%M')
 
-                if "выгрузка из вагона на контейнерном пункте" in str(row['Операция']).lower():
+                if "выгрузка из вагона на контейнерном пункте" in str(row.get('Операция', '')).lower():
                     reply += (
                         f"\n🚆 *Маршрут:* {start} → {end}\n"
                         f"🕓 Дата операции: {date_op_str}\n"
