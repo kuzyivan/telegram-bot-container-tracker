@@ -35,17 +35,17 @@ async def refresh(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Обработка одного или нескольких контейнеров
 async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = update.message.text.strip().upper()
-    container_list = re.split(r'[\s,;:.]+', message_text)
+    container_list = re.split(r'[\s,;:.\n]+', message_text)
     container_list = [c for c in container_list if c]
 
     try:
         df = pd.read_csv(GOOGLE_SHEET_CSV)
         df.columns = [str(col).strip().replace('\ufeff', '') for col in df.columns]
-        df["Дата операции"] = pd.to_datetime(df["Дата операции"], format="%d.%m.%Y %H:%M:%S", errors='coerce')
+        df["Дата и время операции"] = pd.to_datetime(df["Дата и время операции"], format="%d.%m.%Y %H:%M:%S", errors='coerce')
 
         result_df = (
             df[df["№ КТК"].isin(container_list)]
-            .sort_values("Дата операции", ascending=False)
+            .sort_values("Дата и время операции", ascending=False)
             .drop_duplicates(subset=["№ КТК"])
         )
 
@@ -60,7 +60,7 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply += f"\n🚆 *Маршрут:* {start} → {end}\n"
             for _, row in group.iterrows():
                 station_name = str(row["Станция операции"]).split("(")[0].strip().upper()
-                date_op = row["Дата операции"]
+                date_op = row["Дата и время операции"]
                 eta_str = "неизвестна"
                 if pd.notnull(row.get("Осталось км")):
                     try:
