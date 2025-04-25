@@ -35,8 +35,7 @@ async def refresh(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Обработка одного или нескольких контейнеров
 async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = update.message.text.strip().upper()
-    container_list = re.split(r'[\s,;:.
-]+', message_text)
+    container_list = re.split(r'[\s,;:.\n]+', message_text)
     container_list = [c for c in container_list if c]
 
     try:
@@ -70,12 +69,12 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     eta_str = (date_op + timedelta(days=1)).strftime('%Y-%m-%d')
 
                 reply += (
-                    f"\n№ КТК: `{row['Контейнер']}`\n"
-                    f"Маршрут: {start} → {end}\n"
-                    f"Дислокация: {station_name}\n"
-                    f"Операция: {row['Операция']}\n"
-                    f"Дата операции: {date_op_str}\n"
-                    f"Прогноз прибытия: {eta_str}\n"
+                    f"\n📦 № КТК: `{row['Контейнер']}`\n"
+                    f"🛤 Маршрут: {start} → {end}\n"
+                    f"📍 Дислокация: {station_name}\n"
+                    f"⚙️ Операция: {row['Операция']}\n"
+                    f"🕓 Дата операции: {date_op_str}\n"
+                    f"📅 Прогноз прибытия: {eta_str}\n"
                 )
 
         await update.message.reply_text(reply, parse_mode="Markdown")
@@ -87,7 +86,8 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
 telegram_app.add_handler(CommandHandler("start", start))
 telegram_app.add_handler(CommandHandler("help", help_command))
 telegram_app.add_handler(CommandHandler("refresh", refresh))
-telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, track))
+telegra
+m_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, track))
 
 if __name__ == '__main__':
     telegram_app.run_webhook(
