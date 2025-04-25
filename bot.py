@@ -19,7 +19,7 @@ telegram_app = ApplicationBuilder().token("7339977646:AAHez8tXVk7fOyve8qRYlHYX93
 # /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "👋 Привет! Я бот для отслеживания контейнеров по железной дороге.\n\nПросто пришли мне номер контейнера (например: TCNU1234567), либо список через пробел, запятую, точку с запятой или с новой строки."
+        "\U0001F44B Привет! Я бот для отслеживания контейнеров по железной дороге.\n\nПросто пришли мне номер контейнера (например: TCNU1234567), либо список через пробел, запятую, точку с запятой или с новой строки."
     )
 
 # /help
@@ -41,12 +41,7 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         df = pd.read_csv(GOOGLE_SHEET_CSV)
         df.columns = [str(col).strip().replace('\ufeff', '') for col in df.columns]
-
-        # Поддержка названий с пробелами и переносами
-        df.columns = [col.replace("\n", " ").replace("  ", " ") for col in df.columns]
-
-        if "Дата и время операции" in df.columns:
-            df["Дата и время операции"] = pd.to_datetime(df["Дата и время операции"], format="%d.%m.%Y %H:%M:%S", errors='coerce')
+        df["Дата и время операции"] = pd.to_datetime(df["Дата и время операции"], format="%d.%m.%Y %H:%M:%S", errors='coerce')
 
         result_df = (
             df[df["Номер контейнера"].isin(container_list)]
@@ -62,11 +57,11 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply = "📦 Отчёт по контейнерам:\n"
 
         for (start, end), group in grouped:
+            reply += f"\n🚆 *Маршрут:* {start} → {end}\n"
             for _, row in group.iterrows():
-                station_name = str(row.get("Станция операция", "")).split("(")[0].strip().upper()
-                date_op = row.get("Дата и время операции")
+                station_name = str(row["Станция операция"]).split("(")[0].strip().upper()
+                date_op = row["Дата и время операции"]
                 eta_str = "неизвестна"
-                arrival_flag = ""
 
                 if pd.notnull(row.get("Расстояние оставшееся")):
                     try:
@@ -81,9 +76,10 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 else:
                     date_op_str = date_op.strftime('%Y-%m-%d %H:%M')
 
-                if "выгрузка из вагона на контейнерном пункте" in str(row.get('Операция', '')).lower():
+                if "выгрузка из вагона на контейнерном пункте" in str(row['Операция']).lower():
                     reply += (
                         f"\n🚆 *Маршрут:* {start} → {end}\n"
+                        f"🏢 Станция операции: {station_name}\n"
                         f"🕓 Дата операции: {date_op_str}\n"
                         f"📬 Контейнер прибыл на станцию назначения!\n"
                     )
