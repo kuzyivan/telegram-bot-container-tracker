@@ -59,7 +59,7 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
         for (start, end), group in grouped:
             reply += f"\n🚆 *Маршрут:* {start} → {end}\n"
             for _, row in group.iterrows():
-                station_name = str(row["Станция операция"]).split("(")[0].strip().upper()
+                station_name = str(row["Станция операции"]).split("(")[0].strip().upper()
                 date_op = row["Дата и время операции"]
                 eta_str = "неизвестна"
 
