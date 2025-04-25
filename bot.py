@@ -44,9 +44,9 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
         df["Дата и время операции"] = pd.to_datetime(df["Дата и время операции"], format="%d.%m.%Y %H:%M:%S", errors='coerce')
 
         result_df = (
-            df[df["№ КТК"].isin(container_list)]
+            df[df["Номер контейнера"].isin(container_list)]
             .sort_values("Дата и время операции", ascending=False)
-            .drop_duplicates(subset=["№ КТК"])
+            .drop_duplicates(subset=["Номер контейнера"])
         )
 
         if result_df.empty:
@@ -62,9 +62,10 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 station_name = str(row["Станция операции"]).split("(")[0].strip().upper()
                 date_op = row["Дата и время операции"]
                 eta_str = "неизвестна"
-                if pd.notnull(row.get("Осталось км")):
+
+                if pd.notnull(row.get("Расстояние оставшееся")):
                     try:
-                        km = float(row["Осталось км"])
+                        km = float(row["Расстояние оставшееся"])
                         eta_days = int(round(km / 600))
                         eta_str = f"через {eta_days} дн." if eta_days > 0 else "менее суток"
                     except:
@@ -76,7 +77,7 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     date_op_str = date_op.strftime('%Y-%m-%d %H:%M')
 
                 reply += (
-                    f"\n📦 № КТК: `{row['№ КТК']}`\n"
+                    f"\n📦 № КТК: `{row['Номер контейнера']}`\n"
                     f"🛤 Маршрут: {start} → {end}\n"
                     f"📍 Дислокация: {station_name}\n"
                     f"⚙️ Операция: {row['Операция']}\n"
