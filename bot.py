@@ -35,21 +35,19 @@ async def refresh(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Обработка одного или нескольких контейнеров
 async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = update.message.text.strip().upper()
-    container_list = re.split(r'[\s,;:.\n]+', message_text)
+    container_list = re.split(r'[\s,;:.
+]+', message_text)
     container_list = [c for c in container_list if c]
 
     try:
         df = pd.read_csv(GOOGLE_SHEET_CSV)
         df.columns = [str(col).strip().replace('\ufeff', '') for col in df.columns]
-
-        if "Дата и время операции" in df.columns:
-            df["Дата и время операции"] = pd.to_datetime(df["Дата и время операции"], format="%d.%m.%Y %H:%M:%S", errors='coerce')
-
+        df["Дата операции"] = pd.to_datetime(df["Дата операции"], format="%d.%m.%Y %H:%M:%S", errors='coerce')
 
         result_df = (
-            df[df["Контейнер"].isin(container_list)]
-            .sort_values("Дата и время операции", ascending=False)
-            .drop_duplicates(subset=["Контейнер"])
+            df[df["№ КТК"].isin(container_list)]
+            .sort_values("Дата операции", ascending=False)
+            .drop_duplicates(subset=["№ КТК"])
         )
 
         if result_df.empty:
@@ -62,17 +60,24 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
         for (start, end), group in grouped:
             reply += f"\n🚆 *Маршрут:* {start} → {end}\n"
             for _, row in group.iterrows():
-                station_name = str(row["Станция операция"]).split("(")[0].strip().upper()
-                date_op = row.get("Дата и время операции")
+                station_name = str(row["Станция операции"]).split("(")[0].strip().upper()
+                date_op = row["Дата операции"]
+                eta_str = "неизвестна"
+                if pd.notnull(row.get("Осталось км")):
+                    try:
+                        km = float(row["Осталось км"])
+                        eta_days = int(round(km / 600))
+                        eta_str = f"через {eta_days} дн." if eta_days > 0 else "менее суток"
+                    except:
+                        pass
+
                 if pd.isnull(date_op):
                     date_op_str = "неизвестна"
-                    eta_str = "неизвестна"
                 else:
-                    date_op_str = pd.to_datetime(date_op).strftime('%Y-%m-%d %H:%M')
-                    eta_str = (pd.to_datetime(date_op) + timedelta(days=1)).strftime('%Y-%m-%d')
+                    date_op_str = date_op.strftime('%Y-%m-%d %H:%M')
 
                 reply += (
-                    f"\n📦 № КТК: `{row['Контейнер']}`\n"
+                    f"\n📦 № КТК: `{row['№ КТК']}`\n"
                     f"🛤 Маршрут: {start} → {end}\n"
                     f"📍 Дислокация: {station_name}\n"
                     f"⚙️ Операция: {row['Операция']}\n"
