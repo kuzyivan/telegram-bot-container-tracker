@@ -43,7 +43,8 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
         df.columns = [str(col).strip().replace('\ufeff', '') for col in df.columns]
 
         if "Дата и время операции" in df.columns:
-            df["Дата и время операции"] = pd.to_datetime(df["Дата и время операции"], errors='coerce')
+            df["Дата и время операции"] = pd.to_datetime(df["Дата и время операции"], format="%d.%m.%Y %H:%M:%S", errors='coerce')
+
 
         result_df = (
             df[df["Контейнер"].isin(container_list)]
