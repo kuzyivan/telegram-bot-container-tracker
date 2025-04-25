@@ -82,7 +82,7 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     f"📍 Дислокация: {station_name}\n"
                     f"⚙️ Операция: {row['Операция']}\n"
                     f"🕓 Дата операции: {date_op_str}\n"
-                    f"📅 Прогноз прибытия: {eta_str}\n"
+                    f"📅 Прогноз прибытия РЖД: {eta_str}\n"
                 )
 
         await update.message.reply_text(reply, parse_mode="Markdown")
