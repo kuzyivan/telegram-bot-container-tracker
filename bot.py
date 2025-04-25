@@ -5,6 +5,7 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 import pandas as pd
 from datetime import timedelta
+import re
 
 GOOGLE_SHEET_CSV = "https://docs.google.com/spreadsheets/d/16PZrxpzsfBkF7hGN4OKDx6CRfIqySES4oLL9OoxOV8Q/export?format=csv"
 COORD_FILE = "Stations_coord.xlsx"
@@ -18,13 +19,13 @@ telegram_app = ApplicationBuilder().token("7339977646:AAHez8tXVk7fOyve8qRYlHYX93
 # /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "👋 Привет! Я бот для отслеживания контейнеров по железной дороге.\n\nПросто пришли мне номер контейнера (например: TCNU1234567), либо список через пробел."
+        "👋 Привет! Я бот для отслеживания контейнеров по железной дороге.\n\nПросто пришли мне номер контейнера (например: TCNU1234567), либо список через пробел, запятую, точку с запятой или с новой строки."
     )
 
 # /help
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "❓ Помощь:\n\nПросто отправь номер контейнера (например: TCNU1234567) или несколько номеров через пробел — и я покажу тебе информацию о последних операциях."
+        "❓ Помощь:\n\nПросто отправь номер контейнера (например: TCNU1234567) или несколько номеров через пробел, запятую, точку с запятой или с новой строки — и я покажу тебе информацию о последних операциях."
     )
 
 # /refresh (фиктивная команда)
@@ -34,8 +35,8 @@ async def refresh(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Обработка одного или нескольких контейнеров
 async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = update.message.text.strip().upper()
-    import re
     container_list = re.split(r'[\s,;:.\n]+', message_text)
+    container_list = [c for c in container_list if c]
 
     try:
         df = pd.read_csv(GOOGLE_SHEET_CSV)
