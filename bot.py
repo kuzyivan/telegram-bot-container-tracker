@@ -35,7 +35,8 @@ async def refresh(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Обработка одного или нескольких контейнеров
 async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = update.message.text.strip().upper()
-    container_list = re.split(r'[\s,;:.\n]+', message_text)
+    container_list = re.split(r'[\s,;:.
+]+', message_text)
     container_list = [c for c in container_list if c]
 
     try:
@@ -62,6 +63,7 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 station_name = str(row["Станция операции"]).split("(")[0].strip().upper()
                 date_op = row["Дата и время операции"]
                 eta_str = "неизвестна"
+                arrival_flag = ""
 
                 if pd.notnull(row.get("Расстояние оставшееся")):
                     try:
@@ -76,14 +78,20 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 else:
                     date_op_str = date_op.strftime('%Y-%m-%d %H:%M')
 
+                if "выгрузка из вагона на контейнерном пункте" in str(row['Операция']).lower():
+                    arrival_flag = "📬 Контейнер прибыл на станцию назначения!"
+
                 reply += (
                     f"\n📦 № КТК: `{row['Номер контейнера']}`\n"
                     f"🛤 Маршрут: {start} → {end}\n"
                     f"📍 Дислокация: {station_name}\n"
                     f"⚙️ Операция: {row['Операция']}\n"
                     f"🕓 Дата операции: {date_op_str}\n"
-                    f"📅 Прогноз прибытия РЖД: {eta_str}\n"
+                    f"📅 Прогноз прибытия: {eta_str}\n"
                 )
+
+                if arrival_flag:
+                    reply += f"{arrival_flag}\n"
 
         await update.message.reply_text(reply, parse_mode="Markdown")
 
