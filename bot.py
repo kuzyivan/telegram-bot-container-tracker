@@ -88,7 +88,6 @@ telegram_app.add_handler(CommandHandler("help", help_command))
 telegram_app.add_handler(CommandHandler("refresh", refresh))
 telegram_app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, track))
 
-
 if __name__ == '__main__':
     telegram_app.run_webhook(
         listen="0.0.0.0",
