@@ -33,7 +33,9 @@ async def refresh(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # Обработка одного или нескольких контейнеров
 async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
     message_text = update.message.text.strip().upper()
-    container_list = message_text.split()
+    import re
+    container_list = re.split(r'[\\s,;:.\\n]+', message_text)
+
 
     try:
         df = pd.read_csv(GOOGLE_SHEET_CSV)
