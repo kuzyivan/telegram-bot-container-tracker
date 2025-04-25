@@ -41,7 +41,9 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         df = pd.read_csv(GOOGLE_SHEET_CSV)
         df.columns = [str(col).strip().replace('\ufeff', '') for col in df.columns]
-        df["Дата и время операции"] = pd.to_datetime(df["Дата и время операции"], errors='coerce')
+
+        if "Дата и время операции" in df.columns:
+            df["Дата и время операции"] = pd.to_datetime(df["Дата и время операции"], errors='coerce')
 
         result_df = (
             df[df["Контейнер"].isin(container_list)]
@@ -60,13 +62,13 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply += f"\n🚆 *Маршрут:* {start} → {end}\n"
             for _, row in group.iterrows():
                 station_name = str(row["Станция операция"]).split("(")[0].strip().upper()
-                date_op = row["Дата и время операции"]
+                date_op = row.get("Дата и время операции")
                 if pd.isnull(date_op):
                     date_op_str = "неизвестна"
                     eta_str = "неизвестна"
                 else:
-                    date_op_str = date_op.strftime('%Y-%m-%d %H:%M')
-                    eta_str = (date_op + timedelta(days=1)).strftime('%Y-%m-%d')
+                    date_op_str = pd.to_datetime(date_op).strftime('%Y-%m-%d %H:%M')
+                    eta_str = (pd.to_datetime(date_op) + timedelta(days=1)).strftime('%Y-%m-%d')
 
                 reply += (
                     f"\n📦 № КТК: `{row['Контейнер']}`\n"
