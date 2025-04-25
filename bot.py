@@ -54,12 +54,12 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
 
         grouped = result_df.groupby(["Станция отправления", "Станция назначения"])
-        reply = "📦 Отчёт по контейнерам:\n"
+        reply = "\U0001F4E6 Отчёт по контейнерам:\n"
 
         for (start, end), group in grouped:
-            reply += f"\n🚆 *Маршрут:* {start} → {end}\n"
+            reply += f"\n\U0001F682 *Маршрут:* {start} → {end}\n"
             for _, row in group.iterrows():
-                station_name = str(row["Станция операции"]).split("(")[0].strip().upper()
+                station_name = str(row.get("Станция операции", "")).split("(")[0].strip().upper()
                 date_op = row["Дата и время операции"]
                 eta_str = "неизвестна"
 
@@ -71,26 +71,23 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     except:
                         pass
 
-                if pd.isnull(date_op):
-                    date_op_str = "неизвестна"
-                else:
-                    date_op_str = date_op.strftime('%Y-%m-%d %H:%M')
+                date_op_str = date_op.strftime('%Y-%m-%d %H:%M') if pd.notnull(date_op) else "неизвестна"
 
                 if "выгрузка из вагона на контейнерном пункте" in str(row['Операция']).lower():
                     reply += (
-                        f"\n🚆 *Маршрут:* {start} → {end}\n"
-                        f"🏢 Станция операции: {station_name}\n"
-                        f"🕓 Дата операции: {date_op_str}\n"
-                        f"📬 Контейнер прибыл на станцию назначения!\n"
+                        f"\n\U0001F4E6 № КТК: `{row['Номер контейнера']}`\n"
+                        f"\U0001F682 Маршрут: {start} → {end}\n"
+                        f"\U0001F552 Дата операции: {date_op_str}\n"
+                        f"\U0001F4EC Контейнер прибыл на станцию назначения!\n"
                     )
                 else:
                     reply += (
-                        f"\n📦 № КТК: `{row['Номер контейнера']}`\n"
-                        f"🛤 Маршрут: {start} → {end}\n"
-                        f"📍 Дислокация: {station_name}\n"
+                        f"\n\U0001F4E6 № КТК: `{row['Номер контейнера']}`\n"
+                        f"\U0001F682 Маршрут: {start} → {end}\n"
+                        f"\U0001F4CD Дислокация: {station_name}\n"
                         f"⚙️ Операция: {row['Операция']}\n"
-                        f"🕓 Дата операции: {date_op_str}\n"
-                        f"📅 Прогноз прибытия: {eta_str}\n"
+                        f"\U0001F552 Дата операции: {date_op_str}\n"
+                        f"\U0001F4C5 Прогноз прибытия: {eta_str}\n"
                     )
 
         await update.message.reply_text(reply, parse_mode="Markdown")
