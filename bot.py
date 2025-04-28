@@ -1,5 +1,10 @@
 import logging
 import os
+
+BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+
+telegram_app = ApplicationBuilder().token(BOT_TOKEN).build()
+
 import time
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
