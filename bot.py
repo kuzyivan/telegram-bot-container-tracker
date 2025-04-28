@@ -19,7 +19,7 @@ WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
 
 logging.basicConfig(level=logging.INFO)
 
-telegram_app = ApplicationBuilder().token("7339977646:AAEg3_jWsEULwbt3eWM35_L1MYGXKuyS07Y").build()
+telegram_app = ApplicationBuilder().token("").build()
 
 # /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
