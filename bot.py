@@ -1,10 +1,5 @@
 import logging
 import os
-
-BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN")
-
-telegram_app = ApplicationBuilder().token(BOT_TOKEN).build()
-
 import time
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
@@ -19,12 +14,13 @@ WEBHOOK_URL = os.environ.get("WEBHOOK_URL")
 
 logging.basicConfig(level=logging.INFO)
 
-telegram_app = ApplicationBuilder().token("").build()
+BOT_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+telegram_app = ApplicationBuilder().token(BOT_TOKEN).build()
 
 # /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
-        "\U0001F44B Привет! Я бот для отслеживания контейнеров по железной дороге.\n\nПросто пришли мне номер контейнера (например: TCNU1234567), либо список через пробел, запятую, точку с запятой или с новой строки."
+        "👋 Привет! Я бот для отслеживания контейнеров по железной дороге.\n\nПросто пришли мне номер контейнера (например: TCNU1234567), либо список через пробел, запятую, точку с запятой или с новой строки."
     )
 
 # /help
@@ -59,12 +55,12 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
 
         grouped = result_df.groupby(["Станция отправления", "Станция назначения"])
-        reply = "\U0001F4E6 Отчёт по контейнерам:\n"
+        reply = "📦 Отчёт по контейнерам:\n"
 
         for (start, end), group in grouped:
-            reply += f"\n\U0001F682 *Маршрут:* {start} → {end}\n"
+            reply += f"\n🚆 *Маршрут:* {start} → {end}\n"
             for _, row in group.iterrows():
-                station_name = str(row.get("Станция операции", "")).split("(")[0].strip().upper()
+                station_name = str(row.get("Станция операции", "Неизвестно")).split("(")[0].strip().upper()
                 date_op = row["Дата и время операции"]
                 eta_str = "неизвестна"
 
@@ -76,23 +72,25 @@ async def track(update: Update, context: ContextTypes.DEFAULT_TYPE):
                     except:
                         pass
 
-                date_op_str = date_op.strftime('%Y-%m-%d %H:%M') if pd.notnull(date_op) else "неизвестна"
+                if pd.isnull(date_op):
+                    date_op_str = "неизвестна"
+                else:
+                    date_op_str = date_op.strftime('%Y-%m-%d %H:%M')
 
-                if "выгрузка из вагона на контейнерном пункте" in str(row['Операция']).lower():
+                if "выгрузка из вагона на контейнерном пункте" in str(row.get('Операция', '')).lower():
                     reply += (
-                        f"\n\U0001F4E6 № КТК: `{row['Номер контейнера']}`\n"
-                        f"\U0001F682 Маршрут: {start} → {end}\n"
-                        f"\U0001F552 Дата операции: {date_op_str}\n"
-                        f"\U0001F4EC Контейнер прибыл на станцию назначения!\n"
+                        f"\n🚆 *Маршрут:* {start} → {end}\n"
+                        f"🕓 Дата операции: {date_op_str}\n"
+                        f"📬 Контейнер прибыл на станцию назначения!\n"
                     )
                 else:
                     reply += (
-                        f"\n\U0001F4E6 № КТК: `{row['Номер контейнера']}`\n"
-                        f"\U0001F682 Маршрут: {start} → {end}\n"
-                        f"\U0001F4CD Дислокация: {station_name}\n"
-                        f"⚙️ Операция: {row['Операция']}\n"
-                        f"\U0001F552 Дата операции: {date_op_str}\n"
-                        f"\U0001F4C5 Прогноз прибытия: {eta_str}\n"
+                        f"\n📦 № КТК: `{row['Номер контейнера']}`\n"
+                        f"🛤 Маршрут: {start} → {end}\n"
+                        f"📍 Дислокация: {station_name}\n"
+                        f"⚙️ Операция: {row.get('Операция', 'Неизвестно')}\n"
+                        f"🕓 Дата операции: {date_op_str}\n"
+                        f"📅 Прогноз прибытия: {eta_str}\n"
                     )
 
         await update.message.reply_text(reply, parse_mode="Markdown")
