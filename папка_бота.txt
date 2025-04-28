@@ -1,0 +1,6 @@
+/папка_бота
+    bot.py                # твой основной файл Telegram-бота
+    mail_reader.py         # обработка почты и базы данных
+    downloads/             # папка для Excel-файлов
+    tracking.db            # база данных SQLite (создастся сама)
+    requirements.txt       # список библиотек
